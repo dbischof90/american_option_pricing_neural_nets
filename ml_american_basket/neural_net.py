@@ -75,7 +75,7 @@ def neural_net_layer(param, k, x, data_normalization=True):
 
     a, b, c = paramvec_to_params(param, k)
     if data_normalization:
-        x_norm = (x - x.mean(axis=1))/x.std(axis=1) 
+        x_norm = (x - x.mean(axis=1)[:, None])/x.std(axis=1)[:, None] 
     else:
         x_norm = x
     lin_shifts = np.einsum('ij,il',a, x_norm) + b[:, None]
@@ -119,7 +119,7 @@ def neural_net_layer_jacobian(param, k, x, y, past_param, l2_reg=1e-5, data_norm
 
     res = neural_net_layer(param, k, x, data_normalization) - y
     if data_normalization:
-        x_norm = (x - x.mean(axis=1))/x.std(axis=1) 
+        x_norm = (x - x.mean(axis=1)[:, None])/x.std(axis=1)[:, None] 
     else:
         x_norm = x
     lin_shifts = np.einsum('ij,il',a, x_norm) + b[:, None]
@@ -134,4 +134,3 @@ def neural_net_layer_jacobian(param, k, x, y, past_param, l2_reg=1e-5, data_norm
                                    res[None, :]])
 
     return 2 * (np.mean(jacobian_lsq, axis=1) + l2_reg * (param - past_param) / num_params)
-

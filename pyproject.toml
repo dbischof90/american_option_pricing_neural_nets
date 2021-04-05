@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "ml_american_basket"
-version = "0.1.0"
-description = ""
+name = "american_option_pricing_neural_nets"
+version = "0.3.0"
+description = "A neural network pricer for american options"
 authors = ["Daniel Bischof <daniel.bischof@protonmail.com>"]
 
 [tool.poetry.dependencies]

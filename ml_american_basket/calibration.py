@@ -38,7 +38,7 @@ def quadratic_loss(param, k, x, y, past_param, l2_reg=1e-5, data_normalization=T
     return l2_error + l2_reg * ridge_term
  
 
-def infer_continuation_value_by_neural_net(price_paths, k, payoff_dict, callback=None, **kwargs):
+def infer_continuation_value_by_neural_net(price_paths, k, payoff_dict, verbose=False, callback=None, **kwargs):
     """
     Continuation inference routine. Builds up neural network and derives 
     parameters back to front to compute the final continuation values.
@@ -72,7 +72,7 @@ def infer_continuation_value_by_neural_net(price_paths, k, payoff_dict, callback
     execute_at_t = payoff(price_paths[-1], tmax - tmin)
     continuation_at_t = np.zeros_like(price_paths[-1][0])
     cont_or_execute = np.maximum(continuation_at_t, execute_at_t)
-    nn_parameter = np.ones(shape=((price_paths.shape[1] + 2) * k + 1))
+    nn_parameter = np.zeros(shape=((price_paths.shape[1] + 2) * k + 1))
     
     # Iterate backwards through sample set
     for sample, t in zip(price_paths[-2::-1], np.arange(tmax - dt, tmin, -dt)):
@@ -85,12 +85,13 @@ def infer_continuation_value_by_neural_net(price_paths, k, payoff_dict, callback
                                           )
 
         # If optimization was successfull, save the new parameter set
-        if not calibration_result.success:
-            if calibration_result.status == 2:
-                print(f"Warning at t = {t:.3f}: {calibration_result.message}")
-                print(f"Range of Jacobian: [{calibration_result.jac.min()}, {calibration_result.jac.max()}]")
-            else:
-                print(f"Problem at t = {t:.3f}: {calibration_result.message}")         
+        if verbose:
+            if not calibration_result.success:
+                if calibration_result.status == 2:
+                    print(f"Warning at t = {t:.3f}: {calibration_result.message}")
+                    print(f"Range of Jacobian: [{calibration_result.jac.min()}, {calibration_result.jac.max()}]")
+                else:
+                    print(f"Problem at t = {t:.3f}: {calibration_result.message}")         
         nn_parameter = calibration_result.x
         
         if callback is not None:
@@ -105,9 +106,9 @@ def infer_continuation_value_by_neural_net(price_paths, k, payoff_dict, callback
     
         # Scale parameters back to standard space
         mu, sigma = sample.mean(axis=1), sample.std(axis=1)
-        a, b, c = nn.paramvec_to_params(nn_parameter, k)
-        a /= sigma
-        b -= a.sum(axis=0) * mu
+        a, b, c = nn.paramvec_to_params(nn_parameter.copy(), k)
+        a /= sigma[:, None]
+        b -= (a * mu[:, None]).sum(axis=0)
         rescaled_nn_parameter = nn.params_to_paramvec(a, b, c)
 
         # Save parameters
