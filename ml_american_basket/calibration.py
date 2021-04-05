@@ -60,7 +60,9 @@ def infer_continuation_value_by_neural_net(price_paths, k, payoff_dict, verbose=
     """
 
     nn_parameter_list = []    
-    
+    use_jac = bool(kwargs['use_jac']) if 'use_jac' in kwargs else False
+    l2_reg_val = float(kwargs['l2_reg']) if 'l2_reg' in kwargs else 1e-5
+
     # Sets payoff information
     payoff = payoff_dict['func']
     tmax = payoff_dict['tmax']
@@ -79,8 +81,8 @@ def infer_continuation_value_by_neural_net(price_paths, k, payoff_dict, verbose=
 
         calibration_result = opt.minimize(quadratic_loss, 
                                           x0=nn_parameter,
-                                          jac=nn.neural_net_layer_jacobian,
-                                          args=(k, sample, cont_or_execute, nn_parameter),
+                                          jac=nn.neural_net_layer_jacobian if use_jac else None,
+                                          args=(k, sample, cont_or_execute, nn_parameter, l2_reg_val),
                                           method='BFGS',
                                           )
 

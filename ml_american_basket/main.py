@@ -27,7 +27,8 @@ def boxplot_for_put_option():
     for i in range(1, 101):
         print(f"Iteration {i}/100")
         price_paths = dg.create_gbm_paths(x0, r, cov, tmin, tmax, dt, 1000)
-        nn_parameters = cal.infer_continuation_value_by_neural_net(price_paths, k, payoff_dict, verbose=True) 
+        nn_parameters = cal.infer_continuation_value_by_neural_net(price_paths, k, payoff_dict, 
+                                                                   verbose=True, use_jac=True) 
         # Option value: Execute either directly or hold the option.
         V_0 = max(nn.neural_net_layer(nn_parameters[0], k, x0[:, None], data_normalization=False)[0], 
                   payoff_dict['func'](x0, 0))
@@ -41,7 +42,7 @@ def boxplot_for_straddle_spread_option():
     cov = np.array([[0.5]]) ** 2
     r = 0.05
     k = 4
-    dt = 1/12
+    dt = 1/48
     tmin = 0
     tmax = 1
 
@@ -54,7 +55,7 @@ def boxplot_for_straddle_spread_option():
     for i in range(1, 101):
         print(f"Iteration {i}/100")
         price_paths = dg.create_gbm_paths(x0, r, cov, tmin, tmax, dt, 1000)
-        nn_parameters = cal.infer_continuation_value_by_neural_net(price_paths, k, payoff_dict) 
+        nn_parameters = cal.infer_continuation_value_by_neural_net(price_paths, k, payoff_dict, use_jac=True) 
         # Option value: Execute either directly or hold the option.
         V_0 = max(nn.neural_net_layer(nn_parameters[0], k, x0[:, None], data_normalization=False)[0], 
                   payoff_dict['func'](x0, 0))
@@ -70,9 +71,9 @@ def boxplot_for_basket_straddle_spread_option():
                     [0.0722, 0.0613, 0.0717, 0.0884, 0.0699],
                     [0.1367, 0.1264, 0.0884, 0.2937, 0.1394],
                     [0.1641, 0.1610, 0.0699, 0.1394, 0.2535]])
-    cov = vol @ vol
+    cov = vol ** 2
     r = 0.05
-    k = 12
+    k = 2
     dt = 1/48
     tmin = 0
     tmax = 1
@@ -86,7 +87,7 @@ def boxplot_for_basket_straddle_spread_option():
     for i in range(1, 101):
         print(f"Iteration {i}/100")
         price_paths = dg.create_gbm_paths(x0, r, cov, tmin, tmax, dt, 1000)
-        nn_parameters = cal.infer_continuation_value_by_neural_net(price_paths, k, payoff_dict) 
+        nn_parameters = cal.infer_continuation_value_by_neural_net(price_paths, k, payoff_dict, use_jac=True) 
         # Option value: Execute either directly or hold the option.
         V_0 = max(nn.neural_net_layer(nn_parameters[0], k, x0[:, None], data_normalization=False)[0], 
                   payoff_dict['func'](x0, 0))
@@ -100,7 +101,7 @@ def continuation_value_plots_straddle_spread():
     cov = np.array([[0.5]]) ** 2
     r = 0.05
     k = 4
-    dt = 1/12
+    dt = 1/48
     tmin = 0
     tmax = 1
 
